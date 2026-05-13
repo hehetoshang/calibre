@@ -390,6 +390,9 @@ class Build(Command):
                 help=('Build only the named extension. Available: '+ ', '.join(choices)+'. Default:%default'))
         parser.add_option('--no-compile', default=False, action='store_true',
                 help='Skip compiling all C/C++ extensions.')
+        parser.add_option('--no-gui', default=False, action='store_true',
+                help='Skip building all Qt/PyQt dependent extensions (PyQt SIP extensions and headless QPA plugin). '
+                     'Use this when you do not have Qt installed and only need the CLI/server parts of calibre.')
         parser.add_option('--build-dir', default=None,
             help='Path to directory in which to place object files during the build process, defaults to "build"')
         parser.add_option('--output-dir', default=None,
@@ -439,6 +442,7 @@ class Build(Command):
         for x in (self.output_dir, self.obj_dir):
             os.makedirs(x, exist_ok=True)
         pyqt_extensions, extensions = [], []
+        skip_pyqt = opts.no_gui
         for ext in all_extensions:
             if opts.only not in {'all', ext.name}:
                 continue
@@ -450,6 +454,9 @@ class Build(Command):
                     continue
                 else:
                     raise Exception(ext.error)
+            if skip_pyqt and ext.sip_files:
+                self.info(f'Skipping PyQt extension: {ext.name} (--no-gui)')
+                continue
             (pyqt_extensions if ext.sip_files else extensions).append(ext)
 
         jobs = []
@@ -502,7 +509,7 @@ class Build(Command):
             if not os.path.exists(sbf):
                 self.build_pyqt_extension(ext, sbf)
 
-        if opts.only in {'all', 'headless'}:
+        if opts.only in {'all', 'headless'} and not opts.no_gui:
             self.build_headless()
 
     def dest(self, ext, env):

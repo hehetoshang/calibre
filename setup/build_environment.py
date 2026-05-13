@@ -119,9 +119,15 @@ def readvar(name):
     return re.search(f'^{name}:(.+)$', qraw, flags=re.M).group(1).strip()
 
 
-qt = {x:readvar(y) for x, y in {'libs':'QT_INSTALL_LIBS', 'plugins':'QT_INSTALL_PLUGINS', 'version_str': 'QT_VERSION'}.items()}
-qmakespec = readvar('QMAKE_SPEC') if iswindows else None
-qt['version'] = tuple(map(int, qt['version_str'].split('.')[:2]))
+try:
+    qt = {x:readvar(y) for x, y in {'libs':'QT_INSTALL_LIBS', 'plugins':'QT_INSTALL_PLUGINS', 'version_str': 'QT_VERSION'}.items()}
+    qmakespec = readvar('QMAKE_SPEC') if iswindows else None
+    qt['version'] = tuple(map(int, qt['version_str'].split('.')[:2]))
+    qt_available = True
+except (FileNotFoundError, subprocess.CalledProcessError, OSError):
+    qt = {}
+    qmakespec = None
+    qt_available = False
 freetype_lib_dirs = []
 freetype_libs = []
 freetype_inc_dirs = []

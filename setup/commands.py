@@ -12,6 +12,7 @@ __all__ = [
     'cacerts',
     'check',
     'develop',
+    'develop_cli',
     'export_packages',
     'extdev',
     'get_translations',
@@ -20,6 +21,7 @@ __all__ = [
     'gui',
     'hyphenation',
     'install',
+    'install_cli',
     'iso639',
     'iso3166',
     'iso_data',
@@ -111,10 +113,12 @@ from setup.git_version import GitVersion
 
 git_version = GitVersion()
 
-from setup.install import Bootstrap, Develop, Install, Sdist
+from setup.install import Bootstrap, Develop, DevelopCLI, Install, InstallCLI, Sdist
 
 develop = Develop()
+develop_cli = DevelopCLI()
 install = Install()
+install_cli = InstallCLI()
 sdist = Sdist()
 bootstrap = Bootstrap()
 

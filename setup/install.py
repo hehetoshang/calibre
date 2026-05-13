@@ -277,6 +277,92 @@ class Install(Develop):
                 ' it by running the command calibre')
 
 
+class DevelopCLI(Develop):
+
+    description = textwrap.dedent('''\
+            Setup a development environment for calibre without Qt/GUI.
+            This allows you to run the CLI parts of calibre (calibredb,
+            calibre-server, etc.) from the source tree without needing Qt.
+            Binaries will be installed in <prefix>/bin where <prefix> is
+            the prefix of your python installation. This can be controlled
+            via the --prefix option.
+            ''')
+    short_description = 'Setup a CLI-only development environment (no Qt required)'
+
+    sub_commands = ['build']
+
+    def add_options(self, parser):
+        parser.add_option('--prefix',
+                help='Binaries will be installed in <prefix>/bin')
+        parser.add_option('--system-plugins-location',
+                help='Path to a directory from which the installed calibre will load plugins')
+        self.add_postinstall_options(parser)
+
+
+class InstallCLI(Develop):
+
+    description = textwrap.dedent('''\
+            Install calibre from source without Qt/GUI support.
+            Only CLI tools (calibredb, calibre-server, etc.) will be functional.
+            By default, calibre is installed to <prefix>/bin, <prefix>/lib/calibre,
+            <prefix>/share/calibre. These can all be controlled via options.
+
+            The default <prefix> is the prefix of your python installation.
+    ''')
+    short_description = 'Install calibre from source without Qt/GUI support'
+
+    sub_commands = ['build']
+
+    def add_options(self, parser):
+        parser.add_option('--prefix', help='Installation prefix.')
+        parser.add_option('--libdir',
+            help='Where to put calibre library files. Default is <prefix>/lib')
+        parser.add_option('--bindir',
+            help='Where to put the calibre binaries. Default is <prefix>/bin')
+        parser.add_option('--sharedir',
+            help='Where to put the calibre data files. Default is <prefix>/share')
+        parser.add_option('--staging-root', '--root', default=None,
+                help=('Use a different installation root (mainly for packaging).'
+                    ' The prefix option controls the paths written into '
+                    'the launcher scripts. This option controls the prefix '
+                    'to which the install will actually copy files. By default '
+                    'it is set to the value of --prefix.'))
+        parser.add_option('--staging-libdir',
+            help='Where to put calibre library files. Default is <root>/lib')
+        parser.add_option('--staging-bindir',
+            help='Where to put the calibre binaries. Default is <root>/bin')
+        parser.add_option('--staging-sharedir',
+            help='Where to put the calibre data files. Default is <root>/share')
+        parser.add_option('--system-plugins-location',
+                help='Path to a directory from which the installed calibre will load plugins')
+        self.add_postinstall_options(parser)
+
+    def install_files(self):
+        dest = self.staging_libdir
+        if os.path.exists(dest):
+            shutil.rmtree(dest)
+        self.info('Installing code to', dest)
+        self.manifest.append(dest)
+        for x in os.walk(self.SRC):
+            reldir = os.path.relpath(x[0], self.SRC)
+            destdir = os.path.join(dest, reldir)
+            for f in x[-1]:
+                if os.path.splitext(f)[1] in ('.py', '.so'):
+                    if not os.path.exists(destdir):
+                        os.makedirs(destdir)
+                    shutil.copy2(self.j(x[0], f), destdir)
+        dest = self.staging_sharedir
+        if os.path.exists(dest):
+            shutil.rmtree(dest)
+        self.info('Installing resources to', dest)
+        shutil.copytree(self.RESOURCES, dest, symlinks=True)
+        self.manifest.append(dest)
+
+    def success(self):
+        self.info('\n\ncalibre CLI successfully installed. You can start'
+                ' CLI tools like calibredb and calibre-server.')
+
+
 class Sdist(Command):
 
     description = 'Create a source distribution'

@@ -91,3 +91,26 @@ resource files will be read from the calibre source tree in your home directory
 This type of install can be run with the command::
 
     sudo python setup.py develop
+
+CLI-Only Install (No Qt Required)
+===================================
+
+If you only need calibre's command-line tools (calibredb, calibre-server, etc.)
+and do not have Qt installed, you can build and install without any Qt
+dependencies.
+
+To build without Qt::
+
+    python setup.py build --no-gui
+
+To set up a development environment without Qt::
+
+    sudo python setup.py develop_cli
+
+To install calibre without Qt/GUI support::
+
+    sudo python setup.py install_cli
+
+Note that in this mode, the GUI applications (calibre, calibre-viewer,
+calibre-edit) will not be functional, and various PDF-related features that
+depend on Qt will be unavailable.
